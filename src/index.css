@@ -1,0 +1,9 @@
+@import "tailwindcss";
+* {
+    font-family: 'Manrope', sans-serif;
+  }
+  
+  /* Or more specifically for body */
+  body {
+    font-family: 'Manrope', sans-serif;
+  }
