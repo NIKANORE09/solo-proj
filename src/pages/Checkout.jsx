@@ -7,6 +7,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState("e-money");
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,6 +25,72 @@ export default function Checkout() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    // Clear error when user starts typing
+    if (errors[e.target.name]) {
+      setErrors({
+        ...errors,
+        [e.target.name]: "",
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Required field validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (
+      !/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/[\s\-\(\)]/g, ""))
+    ) {
+      newErrors.phone = "Please enter a valid phone number";
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    if (!formData.zipCode.trim()) {
+      newErrors.zipCode = "ZIP code is required";
+    } else if (!/^[0-9]{5}(-[0-9]{4})?$/.test(formData.zipCode)) {
+      newErrors.zipCode = "Please enter a valid ZIP code";
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+    }
+
+    if (!formData.country.trim()) {
+      newErrors.country = "Country is required";
+    }
+
+    // e-Money validation (only if e-money is selected)
+    if (paymentMethod === "e-money") {
+      if (!formData.eMoneyNumber.trim()) {
+        newErrors.eMoneyNumber = "e-Money number is required";
+      } else if (!/^[0-9]{9}$/.test(formData.eMoneyNumber)) {
+        newErrors.eMoneyNumber = "e-Money number must be 9 digits";
+      }
+
+      if (!formData.eMoneyPin.trim()) {
+        newErrors.eMoneyPin = "e-Money PIN is required";
+      } else if (!/^[0-9]{4}$/.test(formData.eMoneyPin)) {
+        newErrors.eMoneyPin = "e-Money PIN must be 4 digits";
+      }
+    }
+
+    return newErrors;
   };
 
   const subtotal = cart.reduce(
@@ -36,6 +103,21 @@ export default function Checkout() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      // Scroll to first error
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.focus();
+      }
+      return;
+    }
+
     setShowOrderConfirmation(true);
   };
 
@@ -68,7 +150,6 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      
       {showOrderConfirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 ">
           <div className="bg-white rounded-lg p-8 max-w-md w-full">
@@ -148,7 +229,6 @@ export default function Checkout() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
         <button
           onClick={() => navigate(-1)}
           className="text-gray-500 hover:text-gray-700 mb-8 flex items-center gap-2 transition-colors"
@@ -172,11 +252,9 @@ export default function Checkout() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-         
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg p-6 lg:p-8">
               <form onSubmit={handleSubmit}>
-               
                 <div className="mb-8">
                   <h2 className="text-lg font-bold text-[#D87D4A] uppercase tracking-wide mb-6">
                     Billing Details
@@ -191,10 +269,16 @@ export default function Checkout() {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                          errors.name ? "border-red-500" : "border-gray-300"
+                        }`}
                         placeholder="Alexei Ward"
                       />
+                      {errors.name && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.name}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-900 mb-2">
@@ -205,10 +289,16 @@ export default function Checkout() {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                          errors.email ? "border-red-500" : "border-gray-300"
+                        }`}
                         placeholder="alexei@mail.com"
                       />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-900 mb-2">
@@ -219,15 +309,20 @@ export default function Checkout() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                          errors.phone ? "border-red-500" : "border-gray-300"
+                        }`}
                         placeholder="+1 202-555-0136"
                       />
+                      {errors.phone && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.phone}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-               
                 <div className="mb-8">
                   <h2 className="text-lg font-bold text-[#D87D4A] uppercase tracking-wide mb-6">
                     Shipping Info
@@ -242,10 +337,16 @@ export default function Checkout() {
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                          errors.address ? "border-red-500" : "border-gray-300"
+                        }`}
                         placeholder="1137 Williams Avenue"
                       />
+                      {errors.address && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.address}
+                        </p>
+                      )}
                     </div>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -257,10 +358,18 @@ export default function Checkout() {
                           name="zipCode"
                           value={formData.zipCode}
                           onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                          className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                            errors.zipCode
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
                           placeholder="10001"
                         />
+                        {errors.zipCode && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {errors.zipCode}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-gray-900 mb-2">
@@ -271,10 +380,16 @@ export default function Checkout() {
                           name="city"
                           value={formData.city}
                           onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                          className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                            errors.city ? "border-red-500" : "border-gray-300"
+                          }`}
                           placeholder="New York"
                         />
+                        {errors.city && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {errors.city}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -286,15 +401,20 @@ export default function Checkout() {
                         name="country"
                         value={formData.country}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                          errors.country ? "border-red-500" : "border-gray-300"
+                        }`}
                         placeholder="United States"
                       />
+                      {errors.country && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.country}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-               
                 <div>
                   <h2 className="text-lg font-bold text-[#D87D4A] uppercase tracking-wide mb-6">
                     Payment Details
@@ -344,10 +464,18 @@ export default function Checkout() {
                           name="eMoneyNumber"
                           value={formData.eMoneyNumber}
                           onChange={handleInputChange}
-                          required={paymentMethod === "e-money"}
-                          className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                          className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                            errors.eMoneyNumber
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
                           placeholder="238521993"
                         />
+                        {errors.eMoneyNumber && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {errors.eMoneyNumber}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-gray-900 mb-2">
@@ -358,10 +486,18 @@ export default function Checkout() {
                           name="eMoneyPin"
                           value={formData.eMoneyPin}
                           onChange={handleInputChange}
-                          required={paymentMethod === "e-money"}
-                          className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent"
+                          className={`w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#D87D4A] focus:border-transparent ${
+                            errors.eMoneyPin
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
                           placeholder="6891"
                         />
+                        {errors.eMoneyPin && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {errors.eMoneyPin}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -394,14 +530,12 @@ export default function Checkout() {
             </div>
           </div>
 
-         
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg p-6 lg:p-8 sticky top-8">
               <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-6">
                 Summary
               </h2>
 
-             
               <div className="space-y-4 mb-6">
                 {cart.map((item) => (
                   <div key={item.slug} className="flex items-center gap-4">
@@ -427,7 +561,6 @@ export default function Checkout() {
                 ))}
               </div>
 
-             
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 text-sm uppercase">Total</span>

@@ -35,6 +35,10 @@ export default function YouMayAlsoLike() {
         </h2>
       </div>
 
+    <div id:asdhuag>jasshdags</div>
+
+
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {suggestedProducts.map((product) => (
           <div key={product.id} className="text-center group">
@@ -60,3 +64,7 @@ export default function YouMayAlsoLike() {
     </div>
   );
 }
+
+
+
+
